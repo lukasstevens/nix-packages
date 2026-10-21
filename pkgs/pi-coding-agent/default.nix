@@ -1,68 +1,38 @@
-{ lib, buildNpmPackage, fetchzip, nodejs_24, makeWrapper, ripgrep, fd, jq, callPackage }:
+{ callPackage, fetchFromGitHub }:
 
 let
+  version = "1.3.0";
+  src = fetchFromGitHub {
+    owner = "earendil-works";
+    repo = "pi";
+    rev = "v${version}";
+    hash = "sha256-AsutbwnjiwwLkB5tqLW+1GdGZyLmXsU0W+SNdNhJu7U=";
+  };
   extensions = {
     subagents = callPackage ./extensions/subagents {};
   };
   compose = callPackage ./with-extensions.nix {};
-  pi = buildNpmPackage rec {
-    pname = "pi-coding-agent";
-    version = "1.0.0";
-
-    src = fetchzip {
-      url = "https://registry.npmjs.org/@earendil-works/pi-coding-agent/-/pi-coding-agent-${version}.tgz";
-      hash = "sha256-0Y/IR2n4UAVMxV5Y3a7125MZENV0XRBtVtUhEgNhmoE=";
-    };
-
-    nodejs = nodejs_24;
-    # Upstream omits integrity hashes for its own workspace packages.
-    postPatch = ''
-      ${jq}/bin/jq --slurpfile hashes ${./npm-integrities.json} '
-        .packages |= with_entries(
-          if $hashes[0][.key] then .value.integrity = $hashes[0][.key] else . end
-        )
-      ' npm-shrinkwrap.json > npm-shrinkwrap.json.new
-      mv npm-shrinkwrap.json.new npm-shrinkwrap.json
-      ${jq}/bin/jq 'del(.devDependencies)' package.json > package.json.new
-      mv package.json.new package.json
+  # Recent npm releases omit npm-shrinkwrap.json. Use upstream's Nix recipe
+  # and pinned install lock instead of reconstructing the npm dependency tree.
+  upstream = callPackage "${src}/nix/package.nix" { source = src; };
+  pi = upstream.overrideAttrs (old: {
+    # Retain the package layout expected by the subagents launcher metadata.
+    postInstall = (old.postInstall or "") + ''
+      ln -s pi/node_modules "$out/lib/node_modules"
     '';
-    npmDepsHash = "sha256-gSAAY8ehyyzlVSj6E7YCTezZ4cL3MTIiwKdC+O1OnCQ=";
-    npmFlags = [ "--ignore-scripts" ];
-    dontNpmBuild = true;
-
-    nativeBuildInputs = [ makeWrapper ];
-
-    postFixup = ''
+    postFixup = (old.postFixup or "") + ''
       wrapProgram "$out/bin/pi" \
-        --prefix PATH : ${lib.makeBinPath [ nodejs_24 ripgrep fd ]} \
         --set PI_PACKAGE_DIR "$out/lib/node_modules/@earendil-works/pi-coding-agent" \
         --set-default PI_SKIP_VERSION_CHECK 1 \
         --set-default PI_TELEMETRY 0
     '';
-
-    doInstallCheck = true;
-    installCheckPhase = ''
-      export HOME="$TMPDIR/pi-home"
-      mkdir -p "$HOME"
-      test "$("$out/bin/pi" --version)" = "${version}"
-      "$out/bin/pi" mcp --help >/dev/null
-    '';
-
-    passthru = {
+    passthru = (old.passthru or {}) // {
       inherit extensions;
       withExtensions = select: compose {
         inherit pi;
         extensions = select extensions;
       };
     };
-
-    meta = {
-      description = "Pi coding agent with built-in MCP integration";
-      homepage = "https://pi.dev";
-      license = lib.licenses.mit;
-      mainProgram = "pi";
-      platforms = lib.platforms.linux ++ lib.platforms.darwin;
-    };
-  };
+  });
 in
 pi
