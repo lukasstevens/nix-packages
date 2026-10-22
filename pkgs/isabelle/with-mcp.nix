@@ -4,9 +4,11 @@ let
   baseIsabelle = if pkgs.stdenv.hostPlatform.isLinux then unstablePkgs.isabelle else isabelle;
   pideMcp = pkgs.callPackage ./components/pide-mcp.nix { isabelle = baseIsabelle; };
   withComponents = baseIsabelle.withComponents (components:
-    [ pideMcp ] ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+    [
+      pideMcp
+      (pkgs.callPackage ./components/afp.nix { isabelle = baseIsabelle; })
+    ] ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
       components.isabelle-linter
-      (unstablePkgs.callPackage ./components/afp.nix {})
     ]);
 in
 withComponents.overrideAttrs (old: {
