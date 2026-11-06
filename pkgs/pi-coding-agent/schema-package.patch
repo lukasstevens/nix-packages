@@ -1,0 +1,17 @@
+diff --git a/nix/package.nix b/nix/package.nix
+--- a/nix/package.nix
++++ b/nix/package.nix
+@@ -65,5 +65,6 @@ let
+       pack_package packages/codemode codemode
+       pack_package packages/mcp mcp
++      pack_package packages/schema schema
+       pack_package packages/coding-agent coding-agent
+ 
+       runHook postInstall
+@@ -82,5 +83,6 @@ let
+       "node_modules/@earendil-works/pi-coding-agent" = workspacePackages + "/coding-agent.tgz";
+       "node_modules/@earendil-works/pi-mcp" = workspacePackages + "/mcp.tgz";
++      "node_modules/@earendil-works/pi-schema" = workspacePackages + "/schema.tgz";
+       "node_modules/@earendil-works/pi-telemetry" = workspacePackages + "/telemetry.tgz";
+       "node_modules/@earendil-works/pi-tui" = workspacePackages + "/tui.tgz";
+     };

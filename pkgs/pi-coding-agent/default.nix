@@ -1,12 +1,17 @@
-{ callPackage, fetchFromGitHub }:
+{ applyPatches, callPackage, fetchFromGitHub }:
 
 let
-  version = "1.3.0";
-  src = fetchFromGitHub {
+  version = "1.5.0";
+  releaseSrc = fetchFromGitHub {
     owner = "earendil-works";
     repo = "pi";
     rev = "v${version}";
-    hash = "sha256-AsutbwnjiwwLkB5tqLW+1GdGZyLmXsU0W+SNdNhJu7U=";
+    hash = "sha256-eH3RuypmXeayuZ9lEag6KW3m2LSM4bDc4ogyHxjZMNI=";
+  };
+  # Pi 1.5.0 added pi-schema but omitted it from the Nix workspace packs.
+  src = applyPatches {
+    src = releaseSrc;
+    patches = [ ./schema-package.patch ];
   };
   extensions = {
     subagents = callPackage ./extensions/subagents {};

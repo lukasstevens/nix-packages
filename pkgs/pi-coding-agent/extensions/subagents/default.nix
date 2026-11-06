@@ -2,18 +2,18 @@
 
 buildNpmPackage rec {
   pname = "pi-subagents";
-  version = "0.80.0";
+  version = "0.86.0";
 
   src = fetchzip {
     url = "https://registry.npmjs.org/pi-subagents/-/pi-subagents-${version}.tgz";
-    hash = "sha256-7d/rcvyuwHSc791oUcgWjgZIkUYImNbDJZbyTwvBqk4=";
+    hash = "sha256-X+ptBywu1MOPZYItI4fDbltVcBz4IMpnBcEkS9JnQeY=";
   };
 
   nodejs = nodejs_24;
   postPatch = ''
     cp ${./package-lock.json} package-lock.json
   '';
-  npmDepsHash = "sha256-RKRgJAZwdk0Nh0FJGMvOxU5rHXoedVPexn9imERSqGg=";
+  npmDepsHash = "sha256-uDVMiKyHNltgFsCv3URZBKy6+LNBNAjlqAN53eSXrS4=";
   npmFlags = [ "--ignore-scripts" "--legacy-peer-deps" ];
   dontNpmBuild = true;
 
