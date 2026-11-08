@@ -1,4 +1,4 @@
-{ lib, buildNpmPackage, fetchzip, nodejs_24, jq }:
+{ lib, buildNpmPackage, fetchzip, nodejs_24, jq, bash }:
 
 buildNpmPackage rec {
   pname = "pi-processes";
@@ -14,6 +14,11 @@ buildNpmPackage rec {
     ${jq}/bin/jq 'del(.devDependencies)' package.json > package.json.new
     mv package.json.new package.json
     cp ${./package-lock.json} package-lock.json
+
+    substituteInPlace src/utils/command-executor.ts \
+      --replace-fail \
+        'const DEFAULT_KNOWN_SHELL_PATHS = [' \
+        'const DEFAULT_KNOWN_SHELL_PATHS = [ "${lib.getExe bash}",'
   '';
   npmDepsHash = "sha256-bl3bDhyBydjPeybKQfKmHP9EzdsLXrI7fGbNtHDIwgM=";
   npmFlags = [ "--ignore-scripts" "--legacy-peer-deps" ];
