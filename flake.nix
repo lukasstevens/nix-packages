@@ -14,6 +14,7 @@
       overlays.default = final: prev: {
         pi = final.callPackage ./pkgs/pi-coding-agent {};
         pi-subagents = final.pi.extensions.subagents;
+        pi-processes = final.pi.extensions.processes;
         isabelle-with-mcp = final.callPackage ./pkgs/isabelle/with-mcp.nix {
           unstablePkgs = import nixpkgs-unstable {
             system = final.stdenv.hostPlatform.system;
@@ -28,7 +29,7 @@
             overlays = [ self.overlays.default ];
           };
         in {
-          inherit (pkgs) pi pi-subagents isabelle-with-mcp;
+          inherit (pkgs) pi pi-subagents pi-processes isabelle-with-mcp;
           pi-with-subagents = pkgs.pi.withExtensions (extensions: [ extensions.subagents ]);
         });
     };

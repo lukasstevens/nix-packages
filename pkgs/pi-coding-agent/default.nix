@@ -14,6 +14,7 @@ let
     patches = [ ./schema-package.patch ];
   };
   extensions = {
+    processes = callPackage ./extensions/processes {};
     subagents = callPackage ./extensions/subagents {};
   };
   compose = callPackage ./with-extensions.nix {};
