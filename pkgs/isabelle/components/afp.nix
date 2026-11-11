@@ -1,6 +1,6 @@
-{ pkgs, stdenv, lib, isabelle }:
+{ pkgs, stdenvNoCC, lib, isabelle }:
 
-stdenv.mkDerivation rec {
+stdenvNoCC.mkDerivation rec {
   pname = "AFP";
   version = "2025-2";
 
@@ -10,18 +10,19 @@ stdenv.mkDerivation rec {
     sha256 = "sha256-xbWPBv0RpPXJ5qccmLk+u5AHIyOUOJ1jDaze88Nu0yw=";
   };
 
-  nativeBuildInputs = [ isabelle ];
+  dontConfigure = true;
+  dontBuild = true;
 
-  buildPhase = ''
-    export HOME=$TMP
-    isabelle components -u $(pwd)/thys
-  '';
-
+  # Registration is done by isabelle.withComponents.
   installPhase = ''
-    dir=$out/Isabelle${isabelle.version}/contrib/${pname}-${version}
+    runHook preInstall
+
+    dir=$out/${isabelle.dirname}/contrib/${pname}-${version}
     mkdir -p $dir
     cp -r thys/* $dir/
     rm -rf $dir/Go/test
+
+    runHook postInstall
   '';
 
   meta = with lib; {

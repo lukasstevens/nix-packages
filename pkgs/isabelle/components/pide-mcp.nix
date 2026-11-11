@@ -13,20 +13,26 @@ stdenvNoCC.mkDerivation rec {
 
   nativeBuildInputs = [ isabelle ];
   dontConfigure = true;
-  dontBuild = true;
+
+  buildPhase = ''
+    runHook preBuild
+
+    # Register for scala_build
+    export HOME="$TMPDIR/isabelle-home"
+    mkdir -p "$HOME"
+    isabelle components -u "$PWD"
+    isabelle scala_build
+    test -s lib/isabelle_pide_mcp.jar
+
+    runHook postBuild
+  '';
 
   installPhase = ''
     runHook preInstall
 
     component="$out/${isabelle.dirname}/contrib/${pname}-${version}"
     mkdir -p "$component"
-    cp -r . "$component/"
-    chmod -R u+w "$component"
-    export HOME="$TMPDIR/isabelle-home"
-    mkdir -p "$HOME"
-    isabelle components -u "$component"
-    isabelle scala_build
-    test -s "$component/lib/isabelle_pide_mcp.jar"
+    cp -r etc src lib LICENSE.md ISABELLE_VERSION "$component/"
 
     runHook postInstall
   '';
